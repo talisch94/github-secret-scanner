@@ -3,7 +3,7 @@ import { Controller, Get, Query, Logger } from '@nestjs/common';
 import { GithubService } from './github/github.service';
 import { ScannerService } from './scanner/scanner.service';
 import { StateService } from './state/state.service';
-import { CommitLeak } from './models/leak.interface';
+import { CommitLeak } from './models/CommitLeak.interface';
 
 @Controller()
 export class AppController {

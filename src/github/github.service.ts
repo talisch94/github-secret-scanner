@@ -1,4 +1,4 @@
-import { Injectable, HttpException, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 
 @Injectable()
@@ -34,6 +34,9 @@ export class GithubService {
             });
             return response.data;
         } catch (error) {
+            if (error.response?.status === 404) {
+                this.logger.error(`Repository or branch not found: ${owner}/${repo}@${branch}`);
+            }
             this.logger.error('Error fetching commits from GitHub', error.response?.data || error.message);
             throw error;
         }
@@ -48,7 +51,7 @@ export class GithubService {
                     Accept: 'application/vnd.github.v3.diff', // for a textual diff
                 },
             });
-            return response.data; 
+            return response.data;
         } catch (error) {
             this.logger.error('Error fetching commit diff', error.response?.data || error.message);
             throw error;
