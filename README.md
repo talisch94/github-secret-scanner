@@ -1,98 +1,96 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# GitHub AWS Secrets Scanner
+A Node.js NestJS application to scan GitHub repository commits for potential AWS secret leaks.
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Overview
+This app uses the GitHub API to scan commit histories of a specified repository and branch (default: main). It examines the diffs of all changed files in each commit to identify potential AWS access keys and secret keys using regex patterns.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Prerequisites
+Node.js v16 or higher
 
-## Description
+A GitHub Personal Access Token (PAT) with at least read access to the target repository. For public repos, no special permissions are needed.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Installation & Setup
+1. Clone the repository:
 
-## Project setup
+git clone https://github.com/yourusername/github-aws-secrets-scanner.git
+cd github-aws-secrets-scanner
 
-```bash
-$ npm install
-```
+2. Install dependencies:
+npm install
 
-## Compile and run the project
+3. Configure environment variables - Create a .env file in the project root with:
 
-```bash
-# development
-$ npm run start
+GITHUB_TOKEN=github_pat_yourtokenhere
+PORT=3000
 
-# watch mode
-$ npm run start:dev
+Replace github_pat_yourtokenhere with your actual GitHub token.
 
-# production mode
-$ npm run start:prod
-```
+4. Run the app:
 
-## Run tests
+npm run start
 
-```bash
-# unit tests
-$ npm run test
 
-# e2e tests
-$ npm run test:e2e
+## Usage
 
-# test coverage
-$ npm run test:cov
-```
+Scan a repository
+Send a GET request to:
+http://localhost:3000/scan?owner={owner}&repo={repo}&branch={branch}
+* owner — GitHub username or organization (required)
+* repo — Repository name (required)
+* branch — Branch name (optional, default: main)
 
-## Deployment
+Example:
+curl "http://localhost:3000/scan?owner=vercel&repo=next.js&branch=canary"
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Response format
+The API returns a JSON object listing found leaks:
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+{
+  "leaks": [
+    {
+      "commitSha": "123abc...",
+      "committer": "John Doe",
+      "leaks": [
+        "AKIAIOSFODNN7EXAMPLE",
+        "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+      ]
+    }
+  ]
+}
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+## How it works
+The scan continues from the last scanned commit SHA.
+For each commit, all file diffs are retrieved.
+Regex scans diffs for AWS access keys and secret keys.
+If leaks are found, commit SHA, committer, and leaked keys are returned.
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Pagination and GitHub API rate limits are handled carefully.
+Scan state is persisted in a local JSON file.
 
-## Resources
+## Notes and limitations
+Ensure your GitHub token has sufficient permissions for private repos.
+Be mindful of GitHub API rate limits during scanning.
+The app currently scans one branch at a time.
 
-Check out a few resources that may come in handy when working with NestJS:
+## Optional: Docker usage
+Build and run with Docker:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+FROM node:18
 
-## Support
+WORKDIR /app
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+COPY package*.json ./
+RUN npm install
 
-## Stay in touch
+COPY . .
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+CMD ["npm", "run", "start"]
 
-## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Build and run:
+
+docker build -t github-aws-scanner .
+docker run -p 3000:3000 --env GITHUB_TOKEN=your_token_here github-aws-scanner
+
+## Contact
+For questions or issues, contact: tali.schvartz@example.com
