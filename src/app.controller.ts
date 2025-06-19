@@ -43,6 +43,8 @@ export class AppController {
 
             for (let i = startIndex; i < commits.length; i++) {
                 const commit = commits[i];
+                console.log(`Commit SHA: ${commit.sha}, Date: ${commit.commit.committer.date}`);
+
                 const diff = await this.githubService.getCommitDiff(owner, repo, commit.sha);
                 const foundKeys = this.scannerService.scanDiff(diff);
 
@@ -62,6 +64,7 @@ export class AppController {
             if (commits.length < 100) break;
             page++;
         }
+        console.log(`Scanning is completed`);
 
         return { leaks };
     }

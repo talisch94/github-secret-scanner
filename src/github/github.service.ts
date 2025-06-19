@@ -17,7 +17,7 @@ export class GithubService {
             baseURL: this.baseUrl,
             headers: {
                 Accept: 'application/vnd.github.v3+json',
-                Authorization: `Bearer ${process.env.GITHUB_PAT}`,
+                Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
                 'User-Agent': 'YourAppName',
             },
         });
@@ -64,6 +64,7 @@ export class GithubService {
                 headers: {
                     Accept: 'application/vnd.github.v3.diff',
                 },
+                responseType: 'text', // diff is plain text
             });
 
             await this.checkRateLimit(response.headers);
