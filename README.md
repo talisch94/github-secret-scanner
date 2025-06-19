@@ -93,4 +93,4 @@ docker build -t github-aws-scanner .
 docker run -p 3000:3000 --env GITHUB_TOKEN=your_token_here github-aws-scanner
 
 ## Contact
-For questions or issues, contact: tali.schvartz@example.com
+For questions or issues, contact: tali.schvartz@gmail.com
